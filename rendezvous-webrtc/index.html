@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC Rendezvous Server</title>
+</head>
+<body>
+  <h1>WebRTC Rendezvous Server</h1>
+
+  <div>
+    <h2>Chat</h2>
+    <ul id="chatMessages"></ul>
+    <input type="text" id="messageInput" placeholder="Type your message">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+
+    const username = prompt('Enter your username:');
+    socket.emit('register', { username });
+
+ 
+    socket.on('chat-message', (data) => {
+    io.to(data.target).emit('chat-message', { sender: data.target, message: data.message });
+    });
+
+
+    function sendMessage() {
+      const message = messageInput.value;
+      if (message.trim() !== '') {
+        socket.emit('chat-message', { target: username, message });
+        appendMessage(`You: ${message}`);
+        messageInput.value = '';
+      }
+    }
+
+    function appendMessage(message) {
+      const p = document.createElement('p');
+      p.textContent = message;
+      chatMessages.appendChild(p);
+    }
+
+
+
+    messageInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        const message = messageInput.value;
+        // Emit the chat-message event with the message
+        socket.emit('chat-message', { target: targetUsername, message });
+        messageInput.value = '';  // Clear the input field
+    }
+    });
+
+  </script>
+</body>
+</html>
